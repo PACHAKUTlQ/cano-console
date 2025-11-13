@@ -1,0 +1,35 @@
+#/bin/bash
+
+PROFILE_AND_SOCKET_DIR=$(mktemp -d -t canokey-chromium-data.XXXXXX)
+trap 'rm -rf -- "$PROFILE_AND_SOCKET_DIR"' EXIT
+
+bwrap \
+    --unshare-all \
+    --share-net \
+    --die-with-parent \
+    --proc /proc \
+    --dev /dev \
+    --ro-bind /usr/bin /usr/bin \
+    --ro-bind /usr/lib /usr/lib \
+    --ro-bind /usr/lib64 /usr/lib64 \
+    --ro-bind /usr/share /usr/share \
+    --ro-bind /etc/machine-id /etc/machine-id \
+    --ro-bind /sys/devices/system/cpu /sys/devices/system/cpu \
+    --dev-bind /dev/dri /dev/dri \
+    --symlink usr/bin /bin \
+    --symlink usr/lib /lib \
+    --symlink usr/lib64 /lib64 \
+    --symlink usr/bin /sbin \
+    --bind "/run/user/$(id -u)" "/run/user/$(id -u)" \
+    --bind /run/dbus/system_bus_socket /run/dbus/system_bus_socket \
+    --setenv XDG_RUNTIME_DIR "/run/user/$(id -u)" \
+    --setenv WAYLAND_DISPLAY "$WAYLAND_DISPLAY" \
+    --setenv DBUS_SESSION_BUS_ADDRESS "$DBUS_SESSION_BUS_ADDRESS" \
+    chromium \
+        --user-data-dir="$PROFILE_AND_SOCKET_DIR" \
+        --process-singleton-dir="$PROFILE_AND_SOCKET_DIR" \
+        --new-window \
+        --no-first-run \
+        --enable-features=WebUSB,UseOzonePlatform \
+        --disable-gpu \
+        --app=console.canokeys.org
