@@ -20,13 +20,7 @@ func LaunchSandboxedBrowser(url string) error {
 	}
 
 	log.Println("🔎 Scanning for passkey devices...")
-	passkeyDeviceNodes, err := findHidrawDevicesByVIDPID(passkeyVID, passkeyPID)
-	if err != nil {
-		return fmt.Errorf("failed during device scan: %w", err)
-	}
-	if len(passkeyDeviceNodes) == 0 {
-		return fmt.Errorf("no matching passkey devices found; please insert your key and try again")
-	}
+	_, _ = findHidrawDevicesByVIDPID(passkeyVID, passkeyPID)
 
 	profileAndSocketDir, err := os.MkdirTemp("", "canokey-chromium-data.*")
 	if err != nil {
@@ -46,15 +40,12 @@ func LaunchSandboxedBrowser(url string) error {
 		"--share-net",
 		"--die-with-parent",
 		"--proc", "/proc",
-		"--dev", "/dev",
+		"--dev-bind", "/dev", "/dev",
 
-		// "--ro-bind", "/sys", "/sys",
 		"--ro-bind", "/sys/devices", "/sys/devices",
 		"--ro-bind", "/sys/bus/usb", "/sys/bus/usb",
 
 		"--bind", "/run/dbus/system_bus_socket", "/run/dbus/system_bus_socket",
-
-		"--dev-bind", "/dev/bus/usb", "/dev/bus/usb",
 
 		"--ro-bind", "/usr/bin", "/usr/bin",
 		"--ro-bind", "/usr/lib", "/usr/lib",
@@ -68,10 +59,6 @@ func LaunchSandboxedBrowser(url string) error {
 		"--symlink", "usr/bin", "/sbin",
 
 		"--bind", runUserPath, runUserPath,
-	}
-
-	for _, deviceNode := range passkeyDeviceNodes {
-		args = append(args, "--dev-bind", deviceNode, deviceNode)
 	}
 
 	args = append(args,
