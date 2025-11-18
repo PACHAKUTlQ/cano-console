@@ -12,7 +12,7 @@ import (
 )
 
 // findHidrawDevicesByVIDPID scans /sys/class/hidraw to find all device nodes
-// that match the specified vendor and product ID. This version correctly parses the uevent file.
+// that match the specified vendor and product ID.
 func findHidrawDevicesByVIDPID(targetVID, targetPID string) ([]string, error) {
 	var devices []string
 	hidrawPath := "/sys/class/hidraw"
